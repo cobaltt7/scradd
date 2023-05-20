@@ -15,8 +15,8 @@ import censor from "../automod/language.js";
 
 if (!config.channels.board) throw new ReferenceError("Could not find board channel");
 const { board } = config.channels;
-export const BOARD_EMOJI = "🥔",
-	REACTIONS_NAME = "Potatoes";
+export const BOARD_EMOJI = "🍡",
+	REACTIONS_NAME = "Dangos";
 
 export const boardDatabase = new Database<{
 	/** The number of reactions this message has. */
@@ -43,12 +43,12 @@ export function boardReactionCount(channel?: TextBasedChannel): number {
 	const COUNTS = {
 		scradd: 2,
 		admins: 2,
-		exec: 3,
-		mods: 4,
-		misc: 5,
-		default: 6,
-		memes: 8,
-		info: 12,
+		exec: 2,
+		mods: 2,
+		misc: 2,
+		default: 3,
+		memes: 4,
+		info: 5,
 	};
 
 	if (process.env.NODE_ENV !== "production") return COUNTS.scradd;
