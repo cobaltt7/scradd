@@ -91,6 +91,6 @@ const badWords: [RegExp[]?, RegExp[]?, RegExp[]?][] = [
 	],
 ];
 
-if (process.env.NODE_ENV !== "production") badWords[1]?.[0].push(/nhgbzbqzhgr/);
+if (process.env.NODE_ENV !== "production") badWords[1]?.[0]?.push(/nhgbzbqzhgr/);
 
 export default badWords;
