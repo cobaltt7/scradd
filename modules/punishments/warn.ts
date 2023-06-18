@@ -9,11 +9,11 @@ import {
 	TimestampStyles,
 	User,
 } from "discord.js";
-import { client } from "../../lib/client.js";
+import { client } from "strife.js";
 import config from "../../common/config.js";
 import constants from "../../common/constants.js";
 import { convertBase } from "../../util/numbers.js";
-import log, { LoggingEmojis, LoggingErrorEmoji } from "../modlogs/misc.js";
+import log, { LoggingEmojis, LoggingErrorEmoji } from "../logging/misc.js";
 import giveXp from "../xp/giveXp.js";
 import { DEFAULT_XP } from "../xp/misc.js";
 import filterToStrike, {
@@ -50,12 +50,7 @@ export default async function warn(
 	const totalVerbalStrikes = Math.floor((oldStrikeCount % 1) + (strikes % 1));
 	const displayStrikes = Math.trunc(strikes) + totalVerbalStrikes;
 	const moderator = contextOrModerator instanceof User ? contextOrModerator : client.user;
-	const context =
-		(contextOrModerator instanceof User
-			? ""
-			: contextOrModerator + (totalVerbalStrikes ? "\n\n" : "")) +
-		(totalVerbalStrikes ? "Too many verbal strikes" : "");
-
+	const context = contextOrModerator instanceof User ? "" : contextOrModerator;
 	const logMessage = await log(
 		`${LoggingEmojis.Punishment} ${user.toString()} ${
 			displayStrikes
@@ -64,7 +59,15 @@ export default async function warn(
 		} by ${moderator.toString()}`,
 		"members",
 		{
-			files: [{ content: reason + (context && `\n>>> ${context}`), extension: "txt" }],
+			files: [
+				{
+					content:
+						(totalVerbalStrikes ? "Too many verbal strikes\n\n" : "") +
+						reason +
+						(context && `\n>>> ${context}`),
+					extension: "md",
+				},
+			],
 		},
 	);
 	giveXp(user, logMessage.url, DEFAULT_XP * strikes * -1);
@@ -159,12 +162,14 @@ export default async function warn(
 	}
 
 	if (Math.trunc(totalStrikeCount) > MUTE_LENGTHS.length * STRIKES_PER_MUTE) {
-		await user.send(
-			`__**This is your last chance. If you get another strike before ${time(
-				new Date((allUserStrikes[0]?.date ?? Date.now()) + EXPIRY_LENGTH),
-				TimestampStyles.LongDate,
-			)}, you will be banned.**__`,
-		);
+		await user
+			.send(
+				`__**This is your last chance. If you get another strike before ${time(
+					new Date((allUserStrikes[0]?.date ?? Date.now()) + EXPIRY_LENGTH),
+					TimestampStyles.LongDate,
+				)}, you will be banned.**__`,
+			)
+			.catch(() => {});
 	}
 }
 export async function removeStrike(interaction: ButtonInteraction<CacheType>, id: string) {

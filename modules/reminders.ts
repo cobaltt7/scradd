@@ -10,19 +10,17 @@ import {
 	time,
 	TimestampStyles,
 } from "discord.js";
-import { client } from "../lib/client.js";
 import config from "../common/config.js";
 import constants from "../common/constants.js";
 import Database, { cleanDatabaseListeners } from "../common/database.js";
 import censor, { badWordsAllowed } from "./automod/language.js";
-import defineCommand from "../lib/commands.js";
 import { disableComponents } from "../util/discord.js";
 import { convertBase, nth } from "../util/numbers.js";
 import { getSettings } from "./settings.js";
-import { defineButton, defineSelect } from "../lib/components.js";
-import defineEvent from "../lib/events.js";
+import { defineButton, defineSelect, client, defineCommand, defineEvent } from "strife.js";
 import getWeekly, { getChatters } from "./xp/weekly.js";
 import warn from "./punishments/warn.js";
+import { getLevelForXp, xpDatabase } from "./xp/misc.js";
 
 export enum SpecialReminders {
 	Weekly,
@@ -37,6 +35,10 @@ type Reminder = {
 	user: Snowflake;
 	id: string | SpecialReminders;
 };
+
+const BUMPING_THREAD = "881619501018394725",
+	COMMAND_ID = "947088344167366698";
+
 export const remindersDatabase = new Database<Reminder>("reminders");
 await remindersDatabase.init();
 
@@ -129,8 +131,20 @@ setInterval(async () => {
 					case SpecialReminders.Bump: {
 						if (!channel?.isTextBased())
 							throw new TypeError("Could not find bumping channel");
+
+						remindersDatabase.data = [
+							...remindersDatabase.data,
+							{
+								channel: BUMPING_THREAD,
+								date: Date.now() + 1800000,
+								reminder: undefined,
+								id: SpecialReminders.Bump,
+								user: client.user.id,
+							},
+						];
+
 						return await channel.send({
-							content: "🔔 @here </bump:947088344167366698> the server!",
+							content: `🔔 @here </bump:${COMMAND_ID}> the server!`,
 							allowedMentions: { parse: ["everyone"] },
 						});
 					}
@@ -217,10 +231,10 @@ defineCommand(
 								? interaction.member
 								: interaction.user
 							).displayAvatarURL(),
-							name:
-								interaction.member instanceof GuildMember
-									? interaction.member.displayName
-									: interaction.user.username,
+							name: (interaction.member instanceof GuildMember
+								? interaction.member
+								: interaction.user
+							).displayName,
 						},
 						footer: {
 							text: `${reminders.length} reminder${
@@ -279,10 +293,20 @@ defineCommand(
 			}
 		}
 
-		if (reminders.length > 19) {
+		if (
+			reminders.length >
+			Math.ceil(
+				getLevelForXp(
+					Math.abs(
+						xpDatabase.data.find(({ user }) => user === interaction.user.id)?.xp ?? 0,
+					),
+				) * 0.3,
+			) +
+				5
+		) {
 			return await interaction.reply({
 				ephemeral: true,
-				content: `${constants.emojis.statuses.no} You already have 20 reminders set! You are currently not allowed to set any more.`,
+				content: `${constants.emojis.statuses.no} You already have ${reminders.length} reminders set! Please cancel some or level up before setting any more.`,
 			});
 		}
 
@@ -430,16 +454,16 @@ defineEvent("messageCreate", async (message) => {
 	if (
 		message.guild?.id === config.guild.id &&
 		message.interaction?.commandName == "bump" &&
-		message.author.id === "302050872383242240" &&
-		!remindersDatabase.data.find(
-			(reminder) => reminder.id === SpecialReminders.Bump && reminder.user === client.user.id,
-		)
+		message.author.id === constants.users.disboard
 	) {
 		remindersDatabase.data = [
-			...remindersDatabase.data,
+			...remindersDatabase.data.filter(
+				(reminder) =>
+					!(reminder.id === SpecialReminders.Bump && reminder.user === client.user.id),
+			),
 			{
-				channel: "881619501018394725",
-				date: Date.now() + 7260000,
+				channel: BUMPING_THREAD,
+				date: Date.now() + 7200000,
 				reminder: undefined,
 				id: SpecialReminders.Bump,
 				user: client.user.id,

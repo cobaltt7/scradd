@@ -20,7 +20,7 @@ import {
 	roleMention,
 } from "discord.js";
 import config from "../../common/config.js";
-import defineEvent from "../../lib/events.js";
+import { defineEvent } from "strife.js";
 import log, { extraAuditLogsInfo, LoggingEmojis, LOG_GROUPS } from "./misc.js";
 import { unifiedDiff } from "difflib";
 import {
@@ -344,7 +344,7 @@ const events: {
 	// async [AuditLogEvent.AutoModerationRuleUpdate](entry) {}, // TODO
 	async [AuditLogEvent.AutoModerationRuleDelete](entry) {
 		await log(
-			`${LoggingEmojis.Thread} AutoMod Rule ${entry.target.name} created${extraAuditLogsInfo(
+			`${LoggingEmojis.Thread} AutoMod Rule ${entry.target.name} deleted${extraAuditLogsInfo(
 				entry,
 			)} (ID: ${entry.target.id})`,
 			"server",
@@ -563,12 +563,6 @@ defineEvent("guildUpdate", async (oldGuild, newGuild) => {
 	if (oldGuild.maximumMembers !== newGuild.maximumMembers) {
 		await log(
 			`${LoggingEmojis.ServerUpdate} Maximum members set to ${newGuild.maximumMembers}`,
-			"server",
-		);
-	}
-	if (oldGuild.maxStageVideoChannelUsers !== newGuild.maxStageVideoChannelUsers) {
-		await log(
-			`${LoggingEmojis.ServerUpdate} Maximum members in a stage video channel set to ${newGuild.maxStageVideoChannelUsers}`,
 			"server",
 		);
 	}
@@ -836,7 +830,10 @@ defineEvent("threadUpdate", async (_, newThread) => {
 		newThread.archived &&
 		(((newThread.name === DATABASE_THREAD || LOG_GROUPS.includes(newThread.name)) &&
 			newThread.parent?.id === config.channels.modlogs?.id) ||
-			newThread.id === "1029234332977602660") // 988780044627345468
+			[
+				"1029234332977602660", // #YouTube planning
+				"988780044627345468", // #Server Suggestions
+			].includes(newThread.id))
 	)
 		await newThread.setArchived(false, "Modlog threads must stay open");
 });

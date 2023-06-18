@@ -1,5 +1,5 @@
 import type { Message } from "discord.js";
-import { client } from "../../lib/client.js";
+import { client } from "strife.js";
 import config from "../../common/config.js";
 import constants from "../../common/constants.js";
 import {
@@ -8,16 +8,17 @@ import {
 	GlobalBotInvitesPattern,
 	GlobalInvitesPattern,
 } from "../../util/discord.js";
-import log, { LoggingErrorEmoji } from "../modlogs/misc.js";
+import log, { LoggingErrorEmoji } from "../logging/misc.js";
 import { PARTIAL_STRIKE_COUNT } from "../punishments/misc.js";
 import warn from "../punishments/warn.js";
 import censor, { badWordsAllowed } from "./language.js";
+import { stripMarkdown } from "../../util/markdown.js";
 
 const WHITELISTED_INVITE_GUILDS = [
 	config.guild.id,
 	"751206349614088204", // Scratch Addons development
 	"837024174865776680", // TurboWarp
-	"938438560925761619", // Scradd Testing
+	constants.testingServerId,
 	"461575285364752384", // 9th Tail Bot Hub
 	"898383289059016704", // Scratch Addons SMP Archive
 ];
@@ -104,7 +105,7 @@ export default async function automodMessage(message: Message) {
 
 	if (!allowBadWords) {
 		const badWords = [
-			censor(message.content),
+			censor(stripMarkdown(message.content)),
 			...message.stickers.map(({ name }) => censor(name)),
 		].reduce<undefined | { strikes: number; words: string[][] }>(
 			(bad, censored) =>

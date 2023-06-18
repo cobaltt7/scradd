@@ -6,12 +6,12 @@ import "dotenv/config";
 
 import pkg from "./package.json" assert { type: "json" };
 import { GlobalFonts } from "@napi-rs/canvas";
-import login, { client } from "./lib/client.js";
+import { login, client } from "strife.js";
 import constants from "./common/constants.js";
 
 dns.setDefaultResultOrder("ipv4first");
 GlobalFonts.registerFromPath(
-	path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), `./common/sora/font.ttf`),
+	path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), `../common/sora/font.ttf`),
 	"Sora",
 );
 
@@ -21,22 +21,25 @@ await login({
 	async handleError(error, event) {
 		await logError(error, event);
 	},
-	productionId: "929928324959055932",
-	intents: [
-		GatewayIntentBits.Guilds,
-		GatewayIntentBits.GuildMembers,
-		GatewayIntentBits.GuildModeration,
-		GatewayIntentBits.GuildEmojisAndStickers,
-		GatewayIntentBits.GuildWebhooks,
-		GatewayIntentBits.GuildInvites,
-		GatewayIntentBits.GuildVoiceStates,
-		GatewayIntentBits.GuildPresences,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.GuildMessageReactions,
-		GatewayIntentBits.DirectMessages,
-		GatewayIntentBits.MessageContent,
-		GatewayIntentBits.GuildScheduledEvents,
-	],
+	productionId: constants.users.scradd,
+	clientOptions: {
+		intents: [
+			GatewayIntentBits.Guilds,
+			GatewayIntentBits.GuildMembers,
+			GatewayIntentBits.GuildModeration,
+			GatewayIntentBits.GuildEmojisAndStickers,
+			GatewayIntentBits.GuildWebhooks,
+			GatewayIntentBits.GuildInvites,
+			GatewayIntentBits.GuildVoiceStates,
+			GatewayIntentBits.GuildPresences,
+			GatewayIntentBits.GuildMessages,
+			GatewayIntentBits.GuildMessageReactions,
+			GatewayIntentBits.DirectMessages,
+			GatewayIntentBits.MessageContent,
+			GatewayIntentBits.GuildScheduledEvents,
+		],
+		presence: { status: "dnd" },
+	},
 	commandErrorMessage: `${constants.emojis.statuses.no} An error occurred.`,
 });
 
@@ -45,7 +48,7 @@ const { default: logError } = await import("./common/logError.js");
 if (process.env.NODE_ENV === "production") {
 	await import("./web/server.js");
 
-	const { default: log, LoggingEmojis } = await import("./modules/modlogs/misc.js");
+	const { default: log, LoggingEmojis } = await import("./modules/logging/misc.js");
 	await log(`${LoggingEmojis.Bot} Restarted bot on version **v${pkg.version}**`, "server");
 }
 

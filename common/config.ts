@@ -1,6 +1,6 @@
 import { ChannelType, type NonThreadGuildBasedChannel } from "discord.js";
 import constants from "./constants.js";
-import { client } from "../lib/client.js";
+import { client } from "strife.js";
 
 const guild = await client.guilds.fetch(process.env.GUILD_ID ?? "");
 
@@ -55,6 +55,8 @@ async function getConfig() {
 
 			general: getChannel("general", ChannelType.GuildText),
 
+			support: "826250884279173162",
+			server: "988780044627345468",
 			updates: getChannel("updates", ChannelType.GuildText, "partial"),
 			suggestions: getChannel("suggestions", ChannelType.GuildForum),
 			bugs: getChannel("bug", ChannelType.GuildForum, "start"),

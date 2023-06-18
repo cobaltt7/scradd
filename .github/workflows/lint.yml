@@ -15,7 +15,7 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v3.5.2
+              uses: actions/checkout@v3.5.3
               with:
                   ref: ${{ github.head_ref }}
 
@@ -30,12 +30,12 @@ jobs:
 
     format:
         name: Format
-        if: startsWith(github.ref_name, 'dependabot/') != true && always()
+        if: startsWith(github.ref_name, 'dependabot/') != true
         runs-on: ubuntu-20.04
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v3.5.2
+              uses: actions/checkout@v3.5.3
               with:
                   ref: ${{ github.head_ref }}
 
@@ -59,12 +59,11 @@ jobs:
 
     analyze:
         name: Analyze
-        if: always()
         runs-on: ubuntu-20.04
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v3.5.2
+              uses: actions/checkout@v3.5.3
               with:
                   ref: ${{ github.head_ref }}
 
@@ -79,12 +78,11 @@ jobs:
 
     build:
         name: Build
-        if: always()
         runs-on: ubuntu-20.04
 
         steps:
             - name: Checkout
-              uses: actions/checkout@v3.5.2
+              uses: actions/checkout@v3.5.3
               with:
                   ref: ${{ github.head_ref }}
 

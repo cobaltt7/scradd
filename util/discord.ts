@@ -30,6 +30,9 @@ import {
 	type MessageReaction,
 	escapeMarkdown,
 	chatInputApplicationCommandMention,
+	DMChannel,
+	type PartialDMChannel,
+	bold,
 } from "discord.js";
 
 import config from "../common/config.js";
@@ -65,8 +68,7 @@ export function extractMessageExtremities(
 				if (message.type === MessageType.AutoModerationAction) {
 					newEmbed.author = {
 						icon_url: (message.member ?? message.author).displayAvatarURL(),
-
-						name: message.member ? message.member.displayName : message.author.username,
+						name: (message.member ?? message.author).displayName,
 					};
 					newEmbed.color = message.member?.displayColor;
 
@@ -166,9 +168,11 @@ export function getMessageJSON(message: Message): {
  *
  * @returns The messages.
  */
-export async function getAllMessages<Channel extends TextBasedChannel>(
-	channel: Channel,
-): Promise<Message<Channel extends GuildTextBasedChannel ? true : false>[]> {
+export async function getAllMessages(channel: GuildTextBasedChannel): Promise<Message<true>[]>;
+export async function getAllMessages(
+	channel: DMChannel | PartialDMChannel,
+): Promise<Message<false>[]>;
+export async function getAllMessages(channel: TextBasedChannel): Promise<Message[]> {
 	const messages = [];
 
 	// eslint-disable-next-line fp/no-let -- This needs to be changable
@@ -182,7 +186,6 @@ export async function getAllMessages<Channel extends TextBasedChannel>(
 		lastId = fetchedMessages.lastKey();
 	} while (lastId);
 
-	// @ts-expect-error TS2322 -- This is the right type.
 	return messages;
 }
 
@@ -202,7 +205,7 @@ export async function messageToText(message: Message, replies = true): Promise<s
 		? (Date.now() - Number(message.createdAt)) / 1000 / 60 > 15
 			? `${constants.emojis.discord.error} The application did not respond`
 			: `${constants.emojis.discord.typing} ${escapeMessage(
-					message.author.username,
+					message.author.displayName,
 			  )} is thinking...`
 		: message.content;
 
@@ -417,14 +420,20 @@ export async function messageToText(message: Message, replies = true): Promise<s
 
 		case MessageType.ChatInputCommand: {
 			if (!replies) return actualContent;
-			return `*${
-				message.interaction?.user.toString() ?? ""
-			} used ${chatInputApplicationCommandMention(
-				message.interaction?.commandName ?? "",
-				(await config.guild.commands.fetch()).find(
-					({ name }) => name === message.interaction?.commandName,
-				)?.id ?? "",
-			)}:*\n${actualContent}`;
+
+			const commandName = message.interaction?.commandName.split(" ")[0];
+			const command = (await config.guild.commands.fetch()).find(
+				({ name }) => name === commandName,
+			);
+
+			return `*${message.interaction?.user.toString() ?? ""} used ${
+				command
+					? chatInputApplicationCommandMention(
+							message.interaction?.commandName ?? "",
+							command.id ?? "",
+					  )
+					: bold(`/${message.interaction?.commandName ?? ""}`)
+			}:*\n${actualContent}`;
 		}
 
 		case MessageType.Call: {
@@ -643,10 +652,7 @@ export async function paginate<Item>(
 								// eslint-disable-next-line id-match -- We didn’t name this.
 								icon_url: format.displayAvatarURL(),
 
-								name:
-									format instanceof GuildMember
-										? format.displayName
-										: format.username,
+								name: format.displayName,
 						  }
 						: undefined,
 

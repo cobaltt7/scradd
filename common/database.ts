@@ -2,10 +2,16 @@ import exitHook from "async-exit-hook";
 import { type Message, RESTJSONErrorCodes, type Snowflake } from "discord.js";
 import papaparse from "papaparse";
 
-import { client } from "../lib/client.js";
+import { client } from "strife.js";
 import { extractMessageExtremities } from "../util/discord.js";
 import logError from "./logError.js";
-import { getLoggingThread } from "../modules/modlogs/misc.js";
+import { getLoggingThread } from "../modules/logging/misc.js";
+
+let timeouts: {
+	[key: Snowflake]:
+		| { callback: () => Promise<Message<true>>; timeout: NodeJS.Timeout }
+		| undefined;
+} = {};
 
 export const DATABASE_THREAD = "databases";
 
@@ -15,22 +21,18 @@ const databases: { [key: string]: Message<true> | undefined } = {};
 
 for (const message of (await thread.messages.fetch({ limit: 100 })).toJSON()) {
 	const name = message.content.split(" ")[1]?.toLowerCase();
-	if (name && message.attachments.size) {
+	if (name) {
 		databases[name] =
 			message.author.id === client.user?.id
 				? message
-				: await thread.send({
+				: message.attachments.size
+				? await thread.send({
 						...extractMessageExtremities(message),
 						content: message.content,
-				  });
+				  })
+				: undefined;
 	}
 }
-
-let timeouts: {
-	[key: Snowflake]:
-		| { callback: () => Promise<Message<true>>; timeout: NodeJS.Timeout }
-		| undefined;
-} = {};
 
 const contructed: string[] = [];
 
@@ -121,7 +123,10 @@ export default class Database<Data extends { [key: string]: string | number | bo
 			return await promise;
 		};
 
-		timeouts[this.message.id] = { timeout: setTimeout(callback, 15_000), callback };
+		timeouts[this.message.id] = {
+			timeout: setTimeout(async () => await callback(), 15_000),
+			callback,
+		};
 		timeoutId && clearTimeout(timeoutId.timeout);
 	}
 

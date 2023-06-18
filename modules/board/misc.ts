@@ -65,15 +65,19 @@ export function boardReactionCount(channel?: TextBasedChannel): number {
 			[config.channels.modlogs?.id || ""]: COUNTS.mods,
 			[config.channels.exec?.id || ""]: COUNTS.exec,
 			[config.channels.admin?.id || ""]: COUNTS.admins,
-			"853256939089559583": COUNTS.misc,
-			"869662117651955802": COUNTS.misc,
-			"811065897057255424": COUNTS.memes,
-			"806609527281549312": COUNTS.memes,
-			"806656240129671188": COUNTS.memes,
+			"853256939089559583": COUNTS.misc, // #ba-doosters
+			"869662117651955802": COUNTS.misc, // #devs-only
+			"811065897057255424": COUNTS.memes, // #memes
+			"806609527281549312": COUNTS.memes, // #collabs-and-ideas
+			"806656240129671188": COUNTS.memes, // #showcase
 			[config.channels.advertise?.id || ""]: COUNTS.memes,
-			[config.channels.old_suggestions?.id || ""]: COUNTS.default,
+			"939350305311715358": COUNTS.mods, // #modmail
+			"894314668317880321": COUNTS.mods, // #evil-secret-youtube-plans
 		}[baseChannel.id] ||
-		{ [config.channels.info?.id || ""]: COUNTS.info }[baseChannel.parent?.id || ""] ||
+		{
+			[config.channels.info?.id || ""]: COUNTS.info,
+			"866028754962612294": COUNTS.misc, // #The Cache
+		}[baseChannel.parent?.id || ""] ||
 		COUNTS.default
 	);
 }
@@ -106,7 +110,7 @@ export async function generateBoardMessage(
 		const description = await messageToText(message);
 
 		const censored = censor(description);
-		const censoredName = censor(message.author.username);
+		const censoredName = censor(message.author.displayName);
 
 		while (embeds.length > 9) embeds.pop(); // 9 and not 10 because we still need to add ours
 
@@ -156,7 +160,7 @@ export async function generateBoardMessage(
 								: (message.member?.displayName ??
 										(censoredName
 											? censoredName.censored
-											: message.author.username)) +
+											: message.author.displayName)) +
 								  (message.author.bot ? " 🤖" : ""),
 					},
 

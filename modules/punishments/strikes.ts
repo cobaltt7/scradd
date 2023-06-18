@@ -9,7 +9,7 @@ import {
 	TimestampStyles,
 	User,
 } from "discord.js";
-import { client } from "../../lib/client.js";
+import { client } from "strife.js";
 import config from "../../common/config.js";
 import constants from "../../common/constants.js";
 import { paginate } from "../../util/discord.js";
@@ -81,7 +81,7 @@ export async function getStrikes(
 				: interaction.reply(newData));
 		},
 		{
-			title: `${member?.displayName ?? user.username}’s strikes`,
+			title: `${(member ?? user).displayName}’s strikes`,
 			singular: "",
 			plural: "",
 			failMessage: `${selected.toString()} has never been warned!`,
@@ -143,8 +143,10 @@ export async function getStrikeById(
 	const user = member?.user || (await client.users.fetch(strike.user).catch(() => {}));
 
 	const moderator =
-		isModerator && strike.mod && (await client.users.fetch(strike.mod).catch(() => {}));
-	const nick = member?.displayName ?? user?.username;
+		isModerator && strike.mod === "AutoMod"
+			? strike.mod
+			: strike.mod && (await client.users.fetch(strike.mod).catch(() => {}));
+	const nick = (member ?? user)?.displayName;
 	const { useMentions } = getSettings(interactor.user);
 	return {
 		components: isModerator
@@ -194,7 +196,12 @@ export async function getStrikeById(
 						? [
 								{
 									name: "🛡 Moderator",
-									value: useMentions ? moderator.toString() : moderator.username,
+									value:
+										typeof moderator === "string"
+											? moderator
+											: useMentions
+											? moderator.toString()
+											: moderator.displayName,
 									inline: true,
 								},
 						  ]
@@ -203,7 +210,7 @@ export async function getStrikeById(
 						? [
 								{
 									name: "👤 Target user",
-									value: useMentions ? user.toString() : user.username,
+									value: useMentions ? user.toString() : user.displayName,
 									inline: true,
 								},
 						  ]

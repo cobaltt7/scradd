@@ -1,28 +1,67 @@
 import { type MessageCreateOptions, time, TimestampStyles } from "discord.js";
-import { client } from "../../lib/client.js";
+import { client } from "strife.js";
 import config from "../../common/config.js";
 import { nth } from "../../util/numbers.js";
 import { remindersDatabase, SpecialReminders } from "../reminders.js";
 import { getSettings } from "../settings.js";
 import { getFullWeeklyData, recentXpDatabase, xpDatabase } from "./misc.js";
+import constants from "../../common/constants.js";
 
 export async function getChatters() {
 	const weeklyWinners = getFullWeeklyData();
+	const winner = weeklyWinners[0]?.user;
 	weeklyWinners.splice(
 		0,
 		weeklyWinners.findIndex(
 			(gain, index) => index > 3 && gain.xp !== weeklyWinners[index + 1]?.xp,
-		),
+		) + 1,
 	);
 	if (!weeklyWinners.length) return;
 
-	const promises = weeklyWinners.map(
-		async (user) =>
-			`${weeklyWinners.findIndex((found) => found.xp === user.xp) + 6}) ${
-				(await client.users.fetch(user.user)).username
-			} - ${user.xp.toLocaleString("en-us")}`,
+	const formatted = await Promise.all(
+		weeklyWinners.map(
+			async (user) =>
+				`${weeklyWinners.findIndex((found) => found.xp === user.xp) + 6}) ${
+					(
+						await client.users
+							.fetch(user.user)
+							.catch(() => ({ displayName: user.user + "#" }))
+					).displayName
+				} - ${Math.floor(user.xp).toLocaleString("en-us")} XP`,
+		),
 	);
-	return "```\n" + (await Promise.all(promises)).join("\n").replaceAll("```", "'''") + "\n```";
+
+	while (formatted.join("\n").length > 4096) formatted.pop();
+	const ending =
+		weeklyWinners[formatted.length] &&
+		` ${weeklyWinners[formatted.length]?.xp.toLocaleString("en-us")} XP`;
+	const filtered = ending ? formatted.filter((line) => !line.endsWith(ending)) : formatted;
+
+	return {
+		embeds: [
+			{
+				description: "```\n" + filtered.join("\n").replaceAll("```", "'''") + "\n```",
+				footer: ending
+					? {
+							icon_url: config.guild.iconURL() ?? undefined,
+							text: `${
+								weeklyWinners.length - filtered.length
+							} more users with <=${ending}`,
+					  }
+					: undefined,
+				color: constants.themeColor,
+				thumbnail: winner
+					? {
+							url: (
+								await config.guild.members
+									.fetch(winner)
+									.catch(() => client.users.fetch(winner))
+							).displayAvatarURL(),
+					  }
+					: undefined,
+			},
+		],
+	} satisfies MessageCreateOptions;
 }
 
 export default async function getWeekly(nextWeeklyDate: Date) {
@@ -38,7 +77,7 @@ export default async function getWeekly(nextWeeklyDate: Date) {
 	];
 	const weeklyWinners = getFullWeeklyData();
 	recentXpDatabase.data = recentXpDatabase.data.filter(
-		({ time }) => time && time + 604_800_000 < Date.now(),
+		({ time }) => time + 604_800_000 > Date.now(),
 	);
 
 	const { active } = config.roles;

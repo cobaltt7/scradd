@@ -8,7 +8,7 @@ import { stripMarkdown } from "../util/markdown.js";
 import { normalize } from "../util/text.js";
 
 import { autoreactions, dad } from "../secrets.js";
-import defineEvent from "../lib/events.js";
+import { defineEvent } from "strife.js";
 
 const REACTION_CAP = 3;
 
@@ -43,7 +43,6 @@ defineEvent("messageCreate", async (message) => {
 
 	const baseChannel = getBaseChannel(message.channel);
 	if (
-		message.interaction ||
 		config.channels.modlogs?.id === baseChannel?.id ||
 		(process.env.NODE_ENV === "production" &&
 			config.channels.info?.id === baseChannel?.parent?.id) ||

@@ -2,7 +2,7 @@ import { MessageType, type Snowflake } from "discord.js";
 import Database from "../../common/database.js";
 import { GlobalUsersPattern } from "../../util/discord.js";
 import { convertBase } from "../../util/numbers.js";
-import { getLoggingThread } from "../modlogs/misc.js";
+import { getLoggingThread } from "../logging/misc.js";
 
 export const EXPIRY_LENGTH = 1814400000,
 	STRIKES_PER_MUTE = 3,
@@ -57,8 +57,7 @@ export default async function filterToStrike(filter: string) {
 	) {
 		return {
 			...strike,
-			mod: "643945264868098049",
-
+			mod: "AutoMod",
 			reason: `${
 				message.embeds[0].fields.find((field) => field.name === "rule_name")?.value
 			}\n>>> ${message.embeds[0].description}`,
@@ -72,6 +71,6 @@ export default async function filterToStrike(filter: string) {
 
 		reason: url
 			? await fetch(url).then(async (response) => await response.text())
-			: message.content,
+			: message.content.match(/```.*\n([^]+)\n```$/)?.[1] ?? message.content,
 	};
 }

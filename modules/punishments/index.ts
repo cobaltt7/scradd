@@ -1,8 +1,6 @@
 import { ApplicationCommandOptionType, GuildMember } from "discord.js";
-import { client } from "../../lib/client.js";
-import defineCommand from "../../lib/commands.js";
 import constants from "../../common/constants.js";
-import { defineButton, defineSelect } from "../../lib/components.js";
+import { client, defineCommand, defineButton, defineSelect } from "strife.js";
 import { DEFAULT_STRIKES, MUTE_LENGTHS, STRIKES_PER_MUTE } from "./misc.js";
 import { getStrikeById, getStrikes } from "./strikes.js";
 import warn, { addStrikeBack, removeStrike } from "./warn.js";
@@ -26,12 +24,12 @@ defineCommand(
 			},
 
 			user: {
-				description: "View your or (Mods only) someone else’s strikes",
+				description: "View your or (mod only) someone else’s strikes",
 
 				options: {
 					user: {
 						type: ApplicationCommandOptionType.User,
-						description: "(Mods only) The user to see strikes for",
+						description: "(Mod only) The user to see strikes for",
 					},
 				},
 			},
@@ -81,7 +79,7 @@ defineSelect("selectStrike", async (interaction) => {
 defineCommand(
 	{
 		name: "warn",
-		description: "(Mods only) Warns a user",
+		description: "(Mod only) Warns a user",
 		restricted: true,
 
 		options: {

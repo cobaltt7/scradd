@@ -6,7 +6,7 @@ import {
 	TextInputStyle,
 	User,
 } from "discord.js";
-import { client } from "../../lib/client.js";
+import { client } from "strife.js";
 import constants from "../../common/constants.js";
 import { generateError } from "../../common/logError.js";
 
@@ -20,7 +20,7 @@ export default async function getCode(interaction: ChatInputCommandInteraction<"
 			content: `${constants.emojis.statuses.no} This command is reserved for ${
 				process.env.NODE_ENV === "production"
 					? owner instanceof User
-						? owner.username
+						? owner.displayName
 						: "the " + owner?.name + " team"
 					: "Scradd developers"
 			} only!`,
@@ -48,9 +48,13 @@ export default async function getCode(interaction: ChatInputCommandInteraction<"
 
 export async function run(interaction: ModalSubmitInteraction<CacheType>) {
 	await interaction.deferReply();
-	const code = interaction.fields.getTextInputValue("code");
+	const code = interaction.fields.getTextInputValue("code").trim();
 	try {
-		const output = await eval(`(async () => {${code}})()`);
+		const output = await eval(
+			`(async () => {${
+				code.includes("\n") || code.includes("return") ? code : `return ${code}`
+			}})()`,
+		);
 		const type = typeof output;
 		await interaction.editReply({
 			files: [

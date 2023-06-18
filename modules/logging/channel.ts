@@ -94,9 +94,6 @@ export async function threadCreate(entry: GuildAuditLogsEntry<AuditLogEvent.Thre
 			LoggingEmojis.Thread
 		} Private thread ${entry.target.toString()} created${extraAuditLogsInfo(entry)}`,
 		"channels",
-		typeof entry.target.url === "string"
-			? { button: { label: "View Thread", url: entry.target.url } }
-			: undefined,
 	);
 }
 export async function threadDelete(entry: GuildAuditLogsEntry<AuditLogEvent.ThreadDelete>) {
@@ -414,6 +411,7 @@ export async function threadUpdate(oldThread: AnyThreadChannel, newThread: AnyTh
 			`${LoggingEmojis.Thread} ${newThread.toString()} ${
 				newThread.locked ? "locked" : "unlocked"
 			}`,
+			"channels",
 		);
 
 	if (oldThread.rateLimitPerUser !== newThread.rateLimitPerUser) {
@@ -421,6 +419,7 @@ export async function threadUpdate(oldThread: AnyThreadChannel, newThread: AnyTh
 			`${LoggingEmojis.Thread} ${newThread.toString()}’s slowmode was set to ${
 				newThread.rateLimitPerUser
 			} second${newThread.rateLimitPerUser === 1 ? "" : "s"}`,
+			"channels",
 		);
 	}
 }

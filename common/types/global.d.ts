@@ -1,4 +1,4 @@
-import type { Snowflake } from "discord.js";
+import type { ApplicationCommandType, Snowflake } from "discord.js";
 
 declare global {
 	interface ReadonlyArray<T> {
@@ -47,9 +47,27 @@ declare global {
 			GUILD_ID: Snowflake;
 			BOT_TOKEN: string;
 			// BOT_SECRET: string;
-			NODE_ENV: "development" | "production";
+			/** Defaults to `"development"` */
+			NODE_ENV?: "development" | "production";
 			PORT?: `${number}`;
 			CDBL_AUTH?: string;
 		}
+	}
+}
+
+declare module "strife.js" {
+	export interface BaseChatInputCommandData {
+		/**
+		 * Pass `false` to ignore bad words in this command’s options. Pass `"channel"` to only ignore bad words if the channel allows bad
+		 * words.
+		 *
+		 * @default true
+		 */
+		censored?: "channel" | false;
+	}
+	export interface ContextMenuCommandData<
+		T extends typeof ApplicationCommandType["Message" | "User"],
+	> {
+		censored?: never;
 	}
 }

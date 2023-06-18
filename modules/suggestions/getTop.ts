@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, GuildMember, hyperlink, User } from "discord.js";
-import { client } from "../../lib/client.js";
+import { client } from "strife.js";
 import config from "../../common/config.js";
 import { paginate } from "../../util/discord.js";
 import { getSettings } from "../settings.js";
@@ -42,13 +42,15 @@ export default async function getTop(interaction: ChatInputCommandInteraction<"c
 					? ""
 					: ` by ${
 							useMentions
-								? `<@${author instanceof User ? author.id : author}>`
+								? author instanceof User
+									? author.toString()
+									: `<@${author}>`
 								: (author instanceof User
 										? author
 										: await client.users
 												.fetch(author)
-												.catch(() => ({ username: `<@${author}>` }))
-								  ).username
+												.catch(() => ({ displayName: `<@${author}>` }))
+								  ).displayName
 					  }`
 			}`,
 		async (data) => await interaction[interaction.replied ? "editReply" : "reply"](data),

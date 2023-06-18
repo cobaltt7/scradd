@@ -1,16 +1,14 @@
 import { ApplicationCommandOptionType, ButtonStyle, ComponentType, MessageType } from "discord.js";
 
-import { client } from "../../lib/client.js";
 import config from "../../common/config.js";
 import constants from "../../common/constants.js";
-import defineCommand from "../../lib/commands.js";
 import { getLevelForXp, xpDatabase } from "./misc.js";
 import { paginate } from "../../util/discord.js";
 import { getSettings } from "../settings.js";
-import { defineButton } from "../../lib/components.js";
+import { client, defineCommand, defineEvent, defineButton, defineSelect } from "strife.js";
 import getUserRank from "./rank.js";
-import defineEvent from "../../lib/events.js";
 import { giveXpForMessage } from "./giveXp.js";
+import graph from "./graph.js";
 
 defineEvent("messageCreate", async (message) => {
 	if (message.flags.has("Ephemeral") || message.type === MessageType.ThreadStarterMessage) return;
@@ -29,7 +27,7 @@ defineCommand(
 
 		subcommands: {
 			rank: {
-				description: "View a users’ XP rank",
+				description: "View a user’s XP rank",
 
 				options: {
 					user: {
@@ -40,7 +38,7 @@ defineCommand(
 			},
 
 			top: {
-				description: "View all users sorted by how much XP they have",
+				description: "View the server XP leaderboard",
 
 				options: {
 					user: {
@@ -48,6 +46,9 @@ defineCommand(
 						description: "User to jump to",
 					},
 				},
+			},
+			graph: {
+				description: "Graph users’ XP over the last week",
 			},
 		},
 	},
@@ -60,6 +61,23 @@ defineCommand(
 				const user = interaction.options.getUser("user") ?? interaction.user;
 				await getUserRank(interaction, user);
 				return;
+			}
+			case "graph": {
+				return await interaction.reply({
+					components: [
+						{
+							type: ComponentType.ActionRow,
+							components: [
+								{
+									type: ComponentType.UserSelect,
+									placeholder: "Select users",
+									customId: "_weeklyXpGraph",
+									maxValues: 10,
+								},
+							],
+						},
+					],
+				});
 			}
 			case "top": {
 				const allXp = [...xpDatabase.data];
@@ -86,8 +104,8 @@ defineCommand(
 								: (
 										await client.users
 											.fetch(xp.user)
-											.catch(() => ({ username: `<@${xp.user}>` }))
-								  ).username
+											.catch(() => ({ displayName: `<@${xp.user}>` }))
+								  ).displayName
 						} (${Math.floor(xp.xp).toLocaleString("en-us")} XP)`,
 					async (data) =>
 						await interaction[interaction.replied ? "editReply" : "reply"](data),
@@ -117,3 +135,5 @@ defineCommand(
 defineButton("xp", async (interaction, userId = "") => {
 	await getUserRank(interaction, await client.users.fetch(userId));
 });
+
+defineSelect("weeklyXpGraph", graph);

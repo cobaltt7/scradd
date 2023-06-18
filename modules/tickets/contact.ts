@@ -19,7 +19,7 @@ import {
 import config from "../../common/config.js";
 import constants from "../../common/constants.js";
 import { disableComponents } from "../../util/discord.js";
-import log, { LoggingEmojis } from "../modlogs/misc.js";
+import log, { LoggingEmojis } from "../logging/misc.js";
 import { PARTIAL_STRIKE_COUNT, strikeDatabase } from "../punishments/misc.js";
 import {
 	type Category,
@@ -42,6 +42,7 @@ const allFields = {
 		{
 			type: ComponentType.TextInput,
 			customId: "BODY",
+			minLength: 20,
 			required: true,
 			style: TextInputStyle.Paragraph,
 			maxLength: 1024,
@@ -62,6 +63,7 @@ const allFields = {
 		{
 			type: ComponentType.TextInput,
 			customId: "BODY",
+			minLength: 20,
 			required: true,
 			maxLength: 1024,
 			style: TextInputStyle.Paragraph,
@@ -93,6 +95,7 @@ const allFields = {
 		{
 			type: ComponentType.TextInput,
 			customId: "BODY",
+			minLength: 20,
 			required: true,
 			maxLength: 1024,
 			style: TextInputStyle.Paragraph,
@@ -112,6 +115,7 @@ const allFields = {
 		{
 			type: ComponentType.TextInput,
 			customId: "BODY",
+			minLength: 20,
 			required: true,
 			maxLength: 1024,
 			style: TextInputStyle.Paragraph,
@@ -123,6 +127,7 @@ const allFields = {
 		{
 			type: ComponentType.TextInput,
 			customId: "BODY",
+			minLength: 20,
 			required: true,
 			maxLength: 75,
 			style: TextInputStyle.Short,
@@ -134,6 +139,7 @@ const allFields = {
 		{
 			type: ComponentType.TextInput,
 			customId: "BODY",
+			minLength: 20,
 			required: true,
 			maxLength: 1024,
 			style: TextInputStyle.Paragraph,
@@ -177,7 +183,9 @@ export async function gatherTicketInfo(
 		return await interaction.reply({
 			content: `${
 				constants.emojis.statuses.no
-			} Please don't contact mods for SA help. Instead, put your suggestions in ${config.channels.suggestions?.toString()}, bug reports in <#1019734503465439326>, and other questions, comments, concerns, or etcetera in <#826250884279173162>.`,
+			} Please don't contact mods for SA help. Instead, put your suggestions in ${config.channels.suggestions?.toString()}, bug reports in ${config.channels.bugs?.toString()}, and other questions, comments, concerns, or etcetera in <#${
+				config.channels.support
+			}>.`,
 
 			ephemeral: true,
 		});
@@ -185,7 +193,7 @@ export async function gatherTicketInfo(
 
 	if (option === SERVER_CATEGORY) {
 		return await interaction.reply({
-			content: `${constants.emojis.statuses.no} Please don't contact mods for server suggestions. Instead, share them in <#988780044627345468>.`,
+			content: `${constants.emojis.statuses.no} Please don't contact mods for server suggestions. Instead, share them in <#${config.channels.server}>.`,
 
 			ephemeral: true,
 		});
@@ -269,7 +277,7 @@ export default async function contactMods(
 
 	const date = new Date();
 	const thread = await config.channels.tickets.threads.create({
-		name: `${member.user.username} (${date
+		name: `${member.user.displayName} (${date
 			.getUTCFullYear()
 			.toLocaleString("en-us", { useGrouping: false })}-${(
 			date.getUTCMonth() + 1

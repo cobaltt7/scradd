@@ -4,9 +4,8 @@ import path from "node:path";
 import fileSystem from "node:fs/promises";
 import mime from "mime-types";
 import { createRequire } from "node:module";
-import { client } from "../lib/client.js";
+import { client } from "strife.js";
 // import config from "../common/config.js";
-// import {client} from "../lib/client.js";
 // import { REST, RESTGetAPIUserResult, RESTPostOAuth2AccessTokenResult, Routes } from "discord.js";
 
 const require = createRequire(import.meta.url);
@@ -85,8 +84,7 @@ http.createServer((request, response) => {
 			// 	const userPublic = {
 			// 		id: user.id,
 			// 		avatar: user.avatar,
-			// 		username: user.username,
-			// 		discriminator: user.discriminator,
+			// 		displayName: user.displayName,
 			// 		ban: ban.reason,
 			// 	};
 

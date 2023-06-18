@@ -5,10 +5,9 @@ import {
 	ComponentType,
 	type InteractionReplyOptions,
 } from "discord.js";
-import { client } from "../lib/client.js";
+import { client, defineCommand } from "strife.js";
 
 import constants from "../common/constants.js";
-import defineCommand from "../lib/commands.js";
 import { disableComponents, messageToText } from "../util/discord.js";
 
 const MAX_FETCH_COUNT = 100;
@@ -16,7 +15,7 @@ const MAX_FETCH_COUNT = 100;
 defineCommand(
 	{
 		name: "purge",
-		description: "(Mods only) Bulk deletes a specified amount of messages",
+		description: "(Mod only) Bulk deletes a specified amount of messages",
 
 		options: {
 			count: {
@@ -93,7 +92,7 @@ defineCommand(
 
 					author: {
 						icon_url: (last.member ?? last.author).displayAvatarURL(),
-						name: last.member?.displayName ?? last.author.username,
+						name: (last.member ?? last.author).displayName,
 					},
 
 					timestamp: last.createdAt.toISOString(),
@@ -113,7 +112,7 @@ defineCommand(
 
 				author: {
 					icon_url: (sliced[0].member ?? sliced[0].author).displayAvatarURL(),
-					name: sliced[0].member?.displayName ?? sliced[0].author.username,
+					name: (sliced[0].member ?? sliced[0].author).displayName,
 				},
 
 				timestamp: sliced[0].createdAt.toISOString(),

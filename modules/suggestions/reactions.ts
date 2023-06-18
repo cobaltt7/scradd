@@ -1,5 +1,5 @@
 import type { AnyThreadChannel, MessageReaction } from "discord.js";
-import { client } from "../../lib/client.js";
+import { client } from "strife.js";
 import config from "../../common/config.js";
 import { suggestionAnswers, suggestionsDatabase } from "./misc.js";
 
@@ -13,7 +13,9 @@ export default async function updateReactions(reaction: MessageReaction) {
 	) {
 		const defaultEmoji = config.channels.suggestions?.defaultReactionEmoji;
 		if (
-			[defaultEmoji?.id, defaultEmoji?.name].includes(reaction.emoji.valueOf()) &&
+			(defaultEmoji?.id
+				? defaultEmoji?.id === reaction.emoji.id
+				: defaultEmoji?.name === reaction.emoji.name) &&
 			!message.channel.locked
 		) {
 			suggestionsDatabase.updateById(

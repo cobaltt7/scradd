@@ -10,9 +10,8 @@ import {
 import config from "../common/config.js";
 import constants from "../common/constants.js";
 import Database from "../common/database.js";
-import defineCommand from "../lib/commands.js";
 import { getWeeklyXp } from "./xp/misc.js";
-import { defineButton } from "../lib/components.js";
+import { defineButton, defineCommand } from "strife.js";
 
 export const userSettingsDatabase = new Database<{
 	/** The ID of the user. */
@@ -86,10 +85,11 @@ defineCommand(
 
 defineButton("toggleSetting", async (interaction, setting = "") => {
 	if (
-		(!interaction.message.interaction ||
-			interaction.message.interaction.user.id === interaction.user.id) &&
-		(!interaction.message.mentions.parsedUsers.size ||
-			interaction.message.mentions.users.has(interaction.user.id))
+		!interaction.message.flags.has("Ephemeral") &&
+		!(
+			interaction.message.mentions.parsedUsers.size &&
+			interaction.message.mentions.users.has(interaction.user.id)
+		)
 	) {
 		return await interaction.reply({
 			ephemeral: true,

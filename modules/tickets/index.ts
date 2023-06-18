@@ -5,12 +5,16 @@ import {
 	ComponentType,
 	GuildMember,
 } from "discord.js";
-import { client } from "../../lib/client.js";
-import defineCommand from "../../lib/commands.js";
 import config from "../../common/config.js";
 import constants from "../../common/constants.js";
-import { defineButton, defineModal, defineSelect } from "../../lib/components.js";
-import defineEvent from "../../lib/events.js";
+import {
+	client,
+	defineCommand,
+	defineEvent,
+	defineButton,
+	defineModal,
+	defineSelect,
+} from "strife.js";
 import { getSettings, updateSettings } from "../settings.js";
 import {
 	type Category,
@@ -43,7 +47,7 @@ defineEvent("messageCreate", async (message) => {
 						// 	type: ComponentType.Button,
 						// 	style: ButtonStyle.Link,
 						// 	label: "FAQ",
-						// 	url: "https://discord.com/channels/806602307750985799/1099457798452035646",
+						// 	url: `https://discord.com/channels/${config.guild.id}/1099457798452035646`,
 						// },
 						{
 							type: ComponentType.Button,
@@ -55,7 +59,7 @@ defineEvent("messageCreate", async (message) => {
 						// 	type: ComponentType.Button,
 						// 	style: ButtonStyle.Link,
 						// 	label: "SA Support",
-						// 	url: "https://discord.com/channels/806602307750985799/826250884279173162",
+						// url: `https://discord.com/channels/${config.guild.id}/${config.channels.support}`,
 						// },
 					],
 				},
@@ -120,7 +124,7 @@ defineModal("contactMods", async (interaction, id) => {
 defineCommand(
 	{
 		name: "contact-user",
-		description: "(Mods only) Start a private ticket with a user",
+		description: "(Mod only) Start a private ticket with a user",
 		restricted: true,
 
 		options: {
@@ -166,9 +170,7 @@ defineButton("contactUser", async (interaction, userId = "") => {
 
 defineEvent("guildMemberRemove", async (member) => {
 	if (member.guild.id !== config.guild.id) return;
-	await getThreadFromMember(member.partial ? await member.fetch() : member).then(
-		async (thread) => {
-			await thread?.setArchived(true, "Member left");
-		},
-	);
+	await getThreadFromMember(member).then(async (thread) => {
+		await thread?.setArchived(true, "Member left");
+	});
 });
