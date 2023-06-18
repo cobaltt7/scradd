@@ -40,7 +40,7 @@ export default async function graph(interaction: AnySelectMenuInteraction) {
 					const { ctx } = chart;
 					ctx.save();
 					ctx.globalCompositeOperation = "destination-over";
-					ctx.fillStyle = "black";
+					ctx.fillStyle = "white";
 					ctx.fillRect(0, 0, chart.width, chart.height);
 					ctx.restore();
 				},
