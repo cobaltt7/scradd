@@ -19,14 +19,24 @@ jobs:
               with:
                   ref: ${{ github.head_ref }}
 
-            - name: Bump dependencies
-              uses: RedGuy12/sync-types@v1.1.2
+            - name: Bump
+              id: sync_types
+              uses: RedGuy12/sync-types@v1.2.16
 
             - name: Commit
+              id: commit
               uses: stefanzweifel/git-auto-commit-action@v4.16.0
               with:
                   commit_message: Bump dependencies
                   branch: ${{ github.head_ref }}
+
+            - name: Comment
+              if: steps.commit.outputs.changes_detected == 'true'
+              run: |
+                  body="$(cat ${{ steps.sync_types.outputs.output-dir }}/changes.md)$(cat ${{ steps.sync_types.outputs.output-dir }}/sync.md)"
+                  gh api "repos/${{ github.repository }}/commits/${{ steps.commit.outputs.commit_hash }}/comments" -F "body=$body"
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     format:
         name: Format

@@ -21,7 +21,7 @@ import {
 } from "discord.js";
 import config from "../../common/config.js";
 import { defineEvent } from "strife.js";
-import log, { extraAuditLogsInfo, LoggingEmojis, LOG_GROUPS } from "./misc.js";
+import log, { extraAuditLogsInfo, LoggingEmojis } from "./misc.js";
 import { unifiedDiff } from "difflib";
 import {
 	channelCreate,
@@ -57,7 +57,6 @@ import {
 	guildScheduledEventUpdate,
 	voiceStateUpdate,
 } from "./voice.js";
-import { DATABASE_THREAD } from "../../common/database.js";
 
 const events: {
 	[event in AuditLogEvent]?: (entry: GuildAuditLogsEntry<event>) => void | Promise<void>;
@@ -78,6 +77,13 @@ const events: {
 			`${LoggingEmojis.Integration} ${entry.target.toString()} added${extraAuditLogsInfo(
 				entry,
 			)}`,
+			"server",
+		);
+	},
+	async [AuditLogEvent.RoleCreate](entry) {
+		if (!(entry.target instanceof Base)) return;
+		await log(
+			`${LoggingEmojis.Role} ${entry.target.toString()} created${extraAuditLogsInfo(entry)}`,
 			"server",
 		);
 	},
@@ -159,6 +165,15 @@ const events: {
 				}
 			}
 		}
+	},
+	async [AuditLogEvent.RoleDelete](entry) {
+		if (!(entry.target instanceof Base)) return;
+		await log(
+			`${LoggingEmojis.Role} @${entry.target.name} deleted${extraAuditLogsInfo(entry)} (ID: ${
+				entry.target.id
+			})`,
+			"server",
+		);
 	},
 	async [AuditLogEvent.InviteCreate](entry) {
 		await log(
@@ -814,26 +829,6 @@ defineEvent("messageDelete", messageDelete);
 defineEvent("messageDeleteBulk", messageDeleteBulk);
 defineEvent("messageReactionRemoveAll", messageReactionRemoveAll);
 defineEvent("messageUpdate", messageUpdate);
-defineEvent("roleCreate", async (role) => {
-	if (role.guild.id !== config.guild.id) return;
-	await log(`${LoggingEmojis.Role} ${role.toString()} created`, "server");
-});
-defineEvent("roleDelete", async (role) => {
-	if (role.guild.id !== config.guild.id) return;
-	await log(`${LoggingEmojis.Role} @${role.name} deleted (ID: ${role.id})`, "server");
-});
 defineEvent("threadUpdate", threadUpdate);
 defineEvent("userUpdate", userUpdate);
 defineEvent("voiceStateUpdate", voiceStateUpdate);
-defineEvent("threadUpdate", async (_, newThread) => {
-	if (
-		newThread.archived &&
-		(((newThread.name === DATABASE_THREAD || LOG_GROUPS.includes(newThread.name)) &&
-			newThread.parent?.id === config.channels.modlogs?.id) ||
-			[
-				"1029234332977602660", // #YouTube planning
-				"988780044627345468", // #Server Suggestions
-			].includes(newThread.id))
-	)
-		await newThread.setArchived(false, "Modlog threads must stay open");
-});

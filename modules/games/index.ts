@@ -1,19 +1,19 @@
 import { ApplicationCommandOptionType } from "discord.js";
 import guessAddon from "./guessAddon.js";
-import memory, { messageDelete } from "./memory.js";
+import memoryMatch, { messageDelete } from "./memoryMatch.js";
 import { defineButton, defineCommand, defineEvent } from "strife.js";
 import { CURRENTLY_PLAYING } from "./misc.js";
 import constants from "../../common/constants.js";
 import { disableComponents } from "../../util/discord.js";
 
 defineCommand(
-	{ name: "guess-addon", description: "Think of an addon and I will guess it!" },
+	{ name: "guess-addon", description: "Think of an addon for me to guess it" },
 	guessAddon,
 );
 
 defineCommand(
 	{
-		name: "memory",
+		name: "memory-match",
 		description: "Play a memory matching game against someone else",
 		options: {
 			user: {
@@ -22,16 +22,21 @@ defineCommand(
 				required: true,
 			},
 			mode: {
-				description: "The difficulty",
+				description: "The difficulty (defaults to Traditional)",
 				type: ApplicationCommandOptionType.String,
 				choices: {
 					"Easy (2 matches per emoji)": "Easy",
 					"Traditional (1 match per emoji)": "Traditional",
 				},
 			},
+			thread: {
+				description:
+					"Whether to create a thread for chatting alongside the game (defaults to true)",
+				type: ApplicationCommandOptionType.Boolean,
+			},
 		},
 	},
-	memory,
+	memoryMatch,
 );
 defineEvent.pre("messageDelete", messageDelete);
 
